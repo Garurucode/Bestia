@@ -136,7 +136,7 @@ def gioca_carta(turno, giocatore, mano):
             carta_giocata = mano.pop(mano.index(carta))
         elif tavolo[0].seme == briscola["seme"] and carta.seme == briscola["seme"]:
             carta_giocata = mano.pop(mano.index(carta))
-    # definire la logica per giocare la carta
+    # definire il resto della logica per giocare la carta
     return carta_giocata
 
 
@@ -193,6 +193,6 @@ if __name__ == "__main__":
         print(f"\nTurno {turn + 1}:")
         for i in bussatori:
             print(f"Giocatore {i+1} gioca la carta: ", end="")
-            carta_giocata = gioca_carta(turn, i, mano[i])
+            carta_giocata = gioca_carta(turn, i, mani[i])
             print(f"{carta_giocata.valore} di {carta_giocata.seme}")
             tavolo.append(carta_giocata)
