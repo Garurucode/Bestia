@@ -132,7 +132,7 @@ def bussata(punti, mano, briscola):
 
 def gioca_carta(turno, giocatore, mano):
     for carta in mano:
-        if turno == 1 and (carta.valore == "Asso" and carta.seme == briscola["seme"]) and giocatore == bussatori[0]:
+        if turno == 0 and (carta.valore == "Asso" and carta.seme == briscola["seme"]) and giocatore == bussatori[0]:
             carta_giocata = mano.pop(mano.index(carta))
         elif tavolo[0].seme == briscola["seme"] and carta.seme == briscola["seme"]:
             carta_giocata = mano.pop(mano.index(carta))
