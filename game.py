@@ -129,7 +129,7 @@ def bussata(punti, mano, briscola):
     return bussa
 
 
-def gioca_carta(turno, giocatore, mano):
+def gioca_carta(turno, giocatore, mano, briscola):
     for carta in mano:
         if turno == 0 and (carta.valore == "Asso" and carta.seme == briscola["seme"]) and giocatore == bussatori[0]:
             carta_giocata = mano.pop(mano.index(carta))
@@ -192,8 +192,9 @@ if __name__ == "__main__":
         print(f"\nTurno {turn + 1}:")
         for i in bussatori:
             print(f"Giocatore {i+1} gioca la carta: ", end="")
-            carta_giocata = gioca_carta(turn, i, mani[i])
+            carta_giocata = gioca_carta(turn, i, mani[i], briscola)
             print(f"{carta_giocata.valore} di {carta_giocata.seme}")
             tavolo.append(carta_giocata)
+
 
 
