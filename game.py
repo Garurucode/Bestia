@@ -116,12 +116,11 @@ def bussata(punti, mano, briscola):
     for carta in mano:
         if carta.valore == "Asso" and carta.seme == briscola["seme"]:
             bussa = True
-        elif carta.valore == "3" and carta.seme == briscola["seme"] and briscola["valore"] == "Asso":
-            for carta2 in mano:
-                if carta2.valore == "Re" and carta2.seme == briscola["seme"]:
-                    bussa = True
         elif carta.valore == "3" and carta.seme == briscola["seme"]:
-            for carta2 in mano:
+            if briscola["valore"] == "Asso":
+                bussa = True
+            else:
+                for carta2 in mano:
                 if carta2.valore == "Re" and carta2.seme == briscola["seme"]:
                     bussa = True
             break
@@ -196,3 +195,4 @@ if __name__ == "__main__":
             carta_giocata = gioca_carta(turn, i, mani[i])
             print(f"{carta_giocata.valore} di {carta_giocata.seme}")
             tavolo.append(carta_giocata)
+
