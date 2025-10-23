@@ -121,8 +121,8 @@ def bussata(punti, mano, briscola):
                 bussa = True
             else:
                 for carta2 in mano:
-                if carta2.valore == "Re" and carta2.seme == briscola["seme"]:
-                    bussa = True
+                    if carta2.valore == "Re" and carta2.seme == briscola["seme"]:
+                        bussa = True
             break
     if punti > 120:
         bussa = True
@@ -195,4 +195,5 @@ if __name__ == "__main__":
             carta_giocata = gioca_carta(turn, i, mani[i])
             print(f"{carta_giocata.valore} di {carta_giocata.seme}")
             tavolo.append(carta_giocata)
+
 
