@@ -171,6 +171,9 @@ if __name__ == "__main__":
             mostra_carte(mano)
             print(f"Giocatore {i + 1} ha affondato!")
             affondatori.append(i)
+    if num_bussatori == 0:
+        print("Nessun giocatore ha bussato. Ridistribuzione delle carte.")
+        exit()
     print("********** Fine giro di bussate: chi prende carte? **********")
     for i in affondatori:
         if len(bussatori) <= 3:
@@ -195,6 +198,7 @@ if __name__ == "__main__":
             carta_giocata = gioca_carta(turn, i, mani[i], briscola)
             print(f"{carta_giocata.valore} di {carta_giocata.seme}")
             tavolo.append(carta_giocata)
+
 
 
 
