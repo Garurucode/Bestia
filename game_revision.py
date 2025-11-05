@@ -95,7 +95,7 @@ class ConfigurazioneGioco:
     SEMI = ["coppe", "denari", "spade", "bastoni"]
     VALORI = ["Asso", "2", "3", "4", "5", "6", "7", "Fante", "Cavallo", "Re"]
     CARTE_PER_MANO = 3
-    SOGLIA_PUNTI_BUSSATA = 200
+    SOGLIA_PUNTI_BUSSATA = 150
 
 
 # ==================== LOGICA GIOCO ====================
@@ -407,3 +407,4 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
