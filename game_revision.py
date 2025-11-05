@@ -1,5 +1,5 @@
 """
-Gioco della Briscola - Versione Refactorizzata
+Gioco della Bestia - Versione Refactorizzata con Regole Ufficiali
 Struttura modulare, orientata agli oggetti, facilmente estendibile
 """
 
@@ -178,66 +178,188 @@ class GestoreBussata:
 
 
 class GestoreTurno:
-    """Gestisce la logica dei turni di gioco"""
-
+    """Gestisce la logica dei turni di gioco secondo le regole ufficiali della Bestia"""
+    
     def __init__(self, briscola: Carta):
         self.briscola = briscola
-        self.tavolo: List[tuple[Giocatore, Carta]] = []
-
-    def gioca_carta_automatica(self, giocatore: Giocatore, turno: int,
-                               primo_giocatore: bool = False) -> Carta:
+        self.tavolo: List[Tuple[Giocatore, Carta]] = []
+        self.seme_richiesto: Optional[str] = None
+        self.carta_vincente_corrente: Optional[Tuple[Giocatore, Carta]] = None
+    
+    def gioca_carta_strategica(self, giocatore: Giocatore, primo_turno: bool, 
+                               giocatore_di_mano: bool) -> Carta:
         """
-        Logica automatica per giocare una carta
-        Può essere estesa con strategie più complesse
+        Sceglie intelligentemente quale carta giocare secondo le regole della Bestia
+        
+        Regole:
+        1. Giocatore di mano al primo turno con Asso di briscola: DEVE giocarlo
+        2. Non di mano: DEVE rispondere a seme se possibile
+        3. Se non ha il seme: DEVE giocare briscola se ne ha
+        4. Altrimenti: può giocare qualsiasi carta
+        
+        Strategia:
+        - Cerca di vincere giocando la carta più bassa che vince
+        - Se non può vincere, gioca la carta più bassa (preferendo non briscole)
         """
+        
         if not giocatore.mano:
             raise ValueError(f"{giocatore} non ha carte da giocare!")
-
-        # Primo turno e primo giocatore con Asso di briscola
-        if turno == 0 and primo_giocatore:
+        
+        # REGOLA 1: Giocatore di mano al primo turno con Asso di briscola
+        if giocatore_di_mano and primo_turno:
             for i, carta in enumerate(giocatore.mano):
                 if carta.valore == "Asso" and carta.seme == self.briscola.seme:
                     return giocatore.gioca_carta(i)
-
-        # Gioca carta di briscola se disponibile (strategia semplice)
-        for i, carta in enumerate(giocatore.mano):
-            if carta.seme == self.briscola.seme:
-                return giocatore.gioca_carta(i)
-
-        # Altrimenti gioca la prima carta
-        return giocatore.gioca_carta(0)
-
+        
+        # REGOLA 2-3-4: Giocatore non di mano
+        if not giocatore_di_mano and self.seme_richiesto:
+            return self._gioca_carta_non_di_mano(giocatore)
+        
+        # Giocatore di mano (non primo turno) o primo turno senza Asso di briscola
+        return self._gioca_carta_di_mano(giocatore)
+    
+    def _gioca_carta_non_di_mano(self, giocatore: Giocatore) -> Carta:
+        """Logica per giocatore non di mano (deve rispondere a seme)"""
+        
+        # Trova carte dello stesso seme richiesto
+        carte_stesso_seme = [
+            (i, c) for i, c in enumerate(giocatore.mano) 
+            if c.seme == self.seme_richiesto
+        ]
+        
+        if carte_stesso_seme:
+            # HA carte del seme richiesto
+            return self._scegli_carta_migliore(giocatore, carte_stesso_seme)
+        
+        # NON ha carte del seme richiesto, cerca briscole
+        carte_briscola = [
+            (i, c) for i, c in enumerate(giocatore.mano) 
+            if c.seme == self.briscola.seme
+        ]
+        
+        if carte_briscola:
+            # HA briscole, DEVE giocarle
+            return self._scegli_carta_migliore(giocatore, carte_briscola)
+        
+        # NON ha né seme richiesto né briscole, può giocare qualsiasi cosa
+        # Gioca la carta più bassa
+        return self._gioca_carta_piu_bassa(giocatore)
+    
+    def _gioca_carta_di_mano(self, giocatore: Giocatore) -> Carta:
+        """Logica per giocatore di mano (sceglie liberamente)"""
+        
+        # Strategia semplice: gioca la carta più forte (o personalizza)
+        # Per ora gioca la prima carta disponibile (puoi raffinare)
+        carte_disponibili = [(i, c) for i, c in enumerate(giocatore.mano)]
+        
+        # Preferisci giocare carte alte per prendere
+        carte_disponibili.sort(key=lambda x: x[1].forza_presa, reverse=True)
+        indice, _ = carte_disponibili[0]
+        return giocatore.gioca_carta(indice)
+    
+    def _scegli_carta_migliore(self, giocatore: Giocatore, 
+                               carte_valide: List[Tuple[int, Carta]]) -> Carta:
+        """
+        Sceglie la carta migliore tra quelle valide:
+        - Se può vincere: gioca la carta più bassa che vince
+        - Se non può vincere: gioca la carta più bassa in assoluto
+        """
+        
+        if not self.carta_vincente_corrente:
+            # È il primo a giocare, gioca carta più alta
+            carte_valide.sort(key=lambda x: x[1].forza_presa, reverse=True)
+            indice, _ = carte_valide[0]
+            return giocatore.gioca_carta(indice)
+        
+        _, carta_da_battere = self.carta_vincente_corrente
+        
+        # Trova carte che possono vincere
+        carte_vincenti = [
+            (i, c) for i, c in carte_valide 
+            if self._carta_batte(c, carta_da_battere)
+        ]
+        
+        if carte_vincenti:
+            # Può vincere: gioca la carta vincente più bassa
+            carte_vincenti.sort(key=lambda x: x[1].forza_presa)
+            indice, _ = carte_vincenti[0]
+            return giocatore.gioca_carta(indice)
+        
+        # Non può vincere: gioca la carta più bassa
+        carte_valide.sort(key=lambda x: x[1].forza_presa)
+        indice, _ = carte_valide[0]
+        return giocatore.gioca_carta(indice)
+    
+    def _gioca_carta_piu_bassa(self, giocatore: Giocatore) -> Carta:
+        """Gioca la carta più bassa, preferendo non briscole"""
+        
+        # Separa briscole e non briscole
+        non_briscole = [(i, c) for i, c in enumerate(giocatore.mano) 
+                        if c.seme != self.briscola.seme]
+        briscole = [(i, c) for i, c in enumerate(giocatore.mano) 
+                    if c.seme == self.briscola.seme]
+        
+        # Preferisci non briscole
+        if non_briscole:
+            non_briscole.sort(key=lambda x: x[1].forza_presa)
+            indice, _ = non_briscole[0]
+        else:
+            briscole.sort(key=lambda x: x[1].forza_presa)
+            indice, _ = briscole[0]
+        
+        return giocatore.gioca_carta(indice)
+    
     def aggiungi_carta_tavolo(self, giocatore: Giocatore, carta: Carta):
         """Aggiunge una carta giocata al tavolo"""
         self.tavolo.append((giocatore, carta))
-
-    def determina_vincitore(self) -> tuple[Giocatore, List[Carta]]:
+        
+        # Se è la prima carta, imposta il seme richiesto
+        if len(self.tavolo) == 1:
+            self.seme_richiesto = carta.seme
+            self.carta_vincente_corrente = (giocatore, carta)
+        else:
+            # Aggiorna la carta vincente se necessario
+            if self._carta_batte(carta, self.carta_vincente_corrente[1]):
+                self.carta_vincente_corrente = (giocatore, carta)
+    
+    def determina_vincitore(self) -> Tuple[Giocatore, List[Carta]]:
         """Determina il vincitore del turno e restituisce le carte vinte"""
         if not self.tavolo:
             raise ValueError("Nessuna carta sul tavolo!")
-
-        vincitore, carta_vincente = self.tavolo[0]
-
-        for giocatore, carta in self.tavolo[1:]:
-            if self._carta_batte(carta, carta_vincente):
-                vincitore = giocatore
-                carta_vincente = carta
-
+        
+        vincitore = self.carta_vincente_corrente[0]
         carte_vinte = [carta for _, carta in self.tavolo]
-        self.tavolo = []  # Pulisce il tavolo
-
+        
+        # Reset per il prossimo turno
+        self.tavolo = []
+        self.seme_richiesto = None
+        self.carta_vincente_corrente = None
+        
         return vincitore, carte_vinte
-
+    
     def _carta_batte(self, carta1: Carta, carta2: Carta) -> bool:
-        """Verifica se carta1 batte carta2"""
-        # Briscola batte sempre non-briscola
-        if carta1.seme == self.briscola.seme and carta2.seme != self.briscola.seme:
+        """
+        Verifica se carta1 batte carta2 secondo le regole della Bestia:
+        - Briscola batte sempre non-briscola
+        - Tra carte dello stesso seme, vince la più forte
+        - Carta di seme diverso (non briscola) NON batte mai
+        """
+        
+        carta1_briscola = carta1.seme == self.briscola.seme
+        carta2_briscola = carta2.seme == self.briscola.seme
+        
+        # Briscola vs non-briscola
+        if carta1_briscola and not carta2_briscola:
             return True
-        if carta2.seme == self.briscola.seme and carta1.seme != self.briscola.seme:
+        if carta2_briscola and not carta1_briscola:
             return False
-
-        # Confronta per forza
-        return carta1.forza_presa > carta2.forza_presa
+        
+        # Entrambe briscole o stesso seme: confronta forza
+        if carta1.seme == carta2.seme:
+            return carta1.forza_presa > carta2.forza_presa
+        
+        # Semi diversi (nessuna briscola): carta1 non batte
+        return False
 
 
 # ==================== GIOCO PRINCIPALE ====================
@@ -407,4 +529,5 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
