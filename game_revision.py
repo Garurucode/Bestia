@@ -502,6 +502,7 @@ class BriscolaGame:
             vincitore.punti_totali += punti_turno
 
             print(f"\n  🏆 {vincitore} vince il turno! (+{punti_turno} punti)")
+            self.indice_giocatore_di_mano = self.giocatori_attivi.index(vincitore)
 
     def mostra_risultati(self):
         """Mostra i risultati finali"""
@@ -548,6 +549,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
