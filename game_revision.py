@@ -182,9 +182,9 @@ class GestoreTurno:
     
     def __init__(self, briscola: Carta):
         self.briscola = briscola
-        self.tavolo: List[Tuple[Giocatore, Carta]] = []
+        self.tavolo: List[tuple[Giocatore, Carta]] = []
         self.seme_richiesto: Optional[str] = None
-        self.carta_vincente_corrente: Optional[Tuple[Giocatore, Carta]] = None
+        self.carta_vincente_corrente: Optional[tuple[Giocatore, Carta]] = None
     
     def gioca_carta_strategica(self, giocatore: Giocatore, primo_turno: bool, 
                                giocatore_di_mano: bool) -> Carta:
@@ -258,7 +258,7 @@ class GestoreTurno:
         return giocatore.gioca_carta(indice)
     
     def _scegli_carta_migliore(self, giocatore: Giocatore, 
-                               carte_valide: List[Tuple[int, Carta]]) -> Carta:
+                               carte_valide: List[tuple[int, Carta]]) -> Carta:
         """
         Sceglie la carta migliore tra quelle valide:
         - Se può vincere: gioca la carta più bassa che vince
@@ -322,7 +322,7 @@ class GestoreTurno:
             if self._carta_batte(carta, self.carta_vincente_corrente[1]):
                 self.carta_vincente_corrente = (giocatore, carta)
     
-    def determina_vincitore(self) -> Tuple[Giocatore, List[Carta]]:
+    def determina_vincitore(self) -> tuple[Giocatore, List[Carta]]:
         """Determina il vincitore del turno e restituisce le carte vinte"""
         if not self.tavolo:
             raise ValueError("Nessuna carta sul tavolo!")
@@ -548,6 +548,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
