@@ -319,6 +319,7 @@ class GestoreTurno:
             self.carta_vincente_corrente = (giocatore, carta)
         else:
             # Aggiorna la carta vincente se necessario
+            assert self.carta_vincente_corrente is not None, "Carta vincente corrente non definita!"
             if self._carta_batte(carta, self.carta_vincente_corrente[1]):
                 self.carta_vincente_corrente = (giocatore, carta)
     
@@ -326,7 +327,7 @@ class GestoreTurno:
         """Determina il vincitore del turno e restituisce le carte vinte"""
         if not self.tavolo:
             raise ValueError("Nessuna carta sul tavolo!")
-        
+        assert self.carta_vincente_corrente is not None, "Carta vincente corrente non definita!"
         vincitore = self.carta_vincente_corrente[0]
         carte_vinte = [carta for _, carta in self.tavolo]
         
@@ -549,6 +550,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
