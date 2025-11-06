@@ -248,8 +248,8 @@ class GestoreTurno:
     def _gioca_carta_di_mano(self, giocatore: Giocatore) -> Carta:
         """Logica per giocatore di mano (sceglie liberamente)"""
         
-        # Strategia semplice: gioca la carta più forte (o personalizza)
-        # Per ora gioca la prima carta disponibile (puoi raffinare)
+        # Strategia semplice: gioca la carta più forte (non tiene conto delle carte giocate)
+        # Per ora gioca la prima carta disponibile
         carte_disponibili = [(i, c) for i, c in enumerate(giocatore.mano)]
         
         # Preferisci giocare carte alte per prendere
@@ -374,11 +374,20 @@ class BriscolaGame:
         self.giocatori_attivi: List[Giocatore] = []
         self.briscola: Optional[Carta] = None
         self.gestore_turno: Optional[GestoreTurno] = None
+        self.indice_giocatore_di_mano: int = 0
+
+    def _verifica_inizializzazione(self):
+        """Verifica che il gioco sia stato inizializzato"""
+        if not self.briscola:
+            raise ValueError(
+                "Il gioco non è stato inizializzato! "
+                "Chiama inizializza_gioco() prima."
+            )
 
     def inizializza_gioco(self):
         """Inizializza il gioco: crea mazzo, mescola, distribuisce carte"""
         print("=" * 60)
-        print("🎴 INIZIALIZZAZIONE GIOCO DELLA BRISCOLA 🎴")
+        print("🎴 INIZIALIZZAZIONE GIOCO DELLA BESTIA 🎴")
         print("=" * 60)
 
         # Crea e prepara il mazzo
@@ -459,6 +468,7 @@ class BriscolaGame:
         assert self.briscola is not None, "Briscola deve essere inizializzata"
 
         self.gestore_turno = GestoreTurno(self.briscola)
+        self.indice_giocatore_di_mano = 0  # Il primo giocatore è di mano
 
         # Gioca 3 turni (tutte le carte)
         for turno in range(ConfigurazioneGioco.CARTE_PER_MANO):
@@ -466,15 +476,24 @@ class BriscolaGame:
             print(f"🎯 TURNO {turno + 1}/{ConfigurazioneGioco.CARTE_PER_MANO}")
             print('─' * 60)
 
-            # Ogni giocatore gioca una carta
-            for idx, giocatore in enumerate(self.giocatori_attivi):
-                primo = idx == 0 and turno == 0
-                carta_giocata = self.gestore_turno.gioca_carta_automatica(
-                    giocatore, turno, primo
+            # Ogni giocatore gioca una carta nell'ordine corretto
+            for offset in range(len(self.giocatori_attivi)):
+                # Calcola l'indice con rotazione partendo dal giocatore di mano
+                indice = (self.indice_giocatore_di_mano +
+                          offset) % len(self.giocatori_attivi)
+                giocatore = self.giocatori_attivi[indice]
+
+                giocatore_di_mano = (offset == 0)
+                primo_turno = (turno == 0)
+
+                carta_giocata = self.gestore_turno.gioca_carta_strategica(
+                    giocatore, primo_turno, giocatore_di_mano
                 )
                 self.gestore_turno.aggiungi_carta_tavolo(
                     giocatore, carta_giocata)
-                print(f"  {giocatore} gioca: {carta_giocata}")
+
+                marcatore = "👉 [DI MANO]" if giocatore_di_mano else ""
+                print(f"  {giocatore} gioca: {carta_giocata} {marcatore}")
 
             # Determina vincitore del turno
             vincitore, carte_vinte = self.gestore_turno.determina_vincitore()
@@ -529,5 +548,6 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
