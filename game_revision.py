@@ -341,7 +341,7 @@ class GestoreTurno:
         # Altrimenti gioca la non-briscola più forte
         return giocatore.gioca_carta(indice_migliore)
     
-    def _gioca_carta_non_di_mano(self, giocatore: Giocatore) -> Carta:
+    def _gioca_carta_non_di_mano(self, giocatore: Giocatore, ultimo_a_giocare: bool) -> Carta:
         """Logica per giocatore non di mano (deve rispondere a seme)"""
         
         # Trova carte dello stesso seme richiesto
@@ -352,7 +352,7 @@ class GestoreTurno:
         
         if carte_stesso_seme:
             # HA carte del seme richiesto
-            return self._scegli_carta_migliore(giocatore, carte_stesso_seme)
+            return self._scegli_carta_migliore(giocatore, carte_stesso_seme, ultimo_a_giocare)
         
         # NON ha carte del seme richiesto, cerca briscole
         carte_briscola = [
@@ -362,24 +362,12 @@ class GestoreTurno:
         
         if carte_briscola:
             # HA briscole, DEVE giocarle
-            return self._scegli_carta_migliore(giocatore, carte_briscola)
+            return self._scegli_carta_migliore(giocatore, carte_briscola, ultimo_a_giocare)
         
         # NON ha né seme richiesto né briscole, può giocare qualsiasi cosa
         # Gioca la carta più bassa
         return self._gioca_carta_piu_bassa(giocatore)
-    
-    def _gioca_carta_di_mano(self, giocatore: Giocatore) -> Carta:
-        """Logica per giocatore di mano (sceglie liberamente)"""
-        
-        # Strategia semplice: gioca la carta più forte (non tiene conto delle carte giocate)
-        # Per ora gioca la prima carta disponibile
-        carte_disponibili = [(i, c) for i, c in enumerate(giocatore.mano)]
-        
-        # Preferisci giocare carte alte per prendere
-        carte_disponibili.sort(key=lambda x: x[1].forza_presa, reverse=True)
-        indice, _ = carte_disponibili[0]
-        return giocatore.gioca_carta(indice)
-    
+       
     def _scegli_carta_migliore(self, giocatore: Giocatore, 
                                carte_valide: List[tuple[int, Carta]]) -> Carta:
         """
@@ -673,6 +661,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
