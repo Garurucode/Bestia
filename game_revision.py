@@ -531,6 +531,7 @@ class BriscolaGame:
         self.giocatori_attivi: List[Giocatore] = []
         self.briscola: Optional[Carta] = None
         self.gestore_turno: Optional[GestoreTurno] = None
+        self.tracciamento: Optional[TracciamentoCarte] = None
         self.indice_giocatore_di_mano: int = 0
 
     def _verifica_inizializzazione(self):
@@ -552,6 +553,8 @@ class BriscolaGame:
         self.mazzo.mescola()
         self.briscola = self.mazzo.estrai_briscola()
         self.mazzo.assegna_forza_carte()
+        # Inizializza tracciamento
+        self.tracciamento = TracciamentoCarte(self.briscola)
 
         print(f"\n🃏 Briscola estratta: {self.briscola}")
         print(f"📦 Carte nel mazzo: {self.mazzo.carte_rimanenti()}\n")
@@ -623,6 +626,7 @@ class BriscolaGame:
         print("=" * 60)
         # conferma al type checker che briscola non è None e può essere usata da GestoreTurno
         assert self.briscola is not None, "Briscola deve essere inizializzata"
+        assert self.tracciamento is not None, "Tracciamento deve essere inizializzato"
 
         self.gestore_turno = GestoreTurno(self.briscola)
         self.indice_giocatore_di_mano = 0  # Il primo giocatore è di mano
@@ -637,14 +641,15 @@ class BriscolaGame:
             for offset in range(len(self.giocatori_attivi)):
                 # Calcola l'indice con rotazione partendo dal giocatore di mano
                 indice = (self.indice_giocatore_di_mano +
-                          offset) % len(self.giocatori_attivi)
+                          offset) % num_giocatori
                 giocatore = self.giocatori_attivi[indice]
 
                 giocatore_di_mano = (offset == 0)
                 primo_turno = (turno == 0)
+                ultimo_a_giocare = (offset == num_giocatori - 1)
 
                 carta_giocata = self.gestore_turno.gioca_carta_strategica(
-                    giocatore, primo_turno, giocatore_di_mano
+                    giocatore, primo_turno, giocatore_di_mano, ultimo_a_giocare
                 )
                 self.gestore_turno.aggiungi_carta_tavolo(
                     giocatore, carta_giocata)
@@ -659,6 +664,7 @@ class BriscolaGame:
             vincitore.punti_totali += punti_turno
 
             print(f"\n  🏆 {vincitore} vince il turno! (+{punti_turno} punti)")
+            # Aggiorna giocatore di mano per il prossimo turno
             self.indice_giocatore_di_mano = self.giocatori_attivi.index(vincitore)
 
     def mostra_risultati(self):
@@ -706,6 +712,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
