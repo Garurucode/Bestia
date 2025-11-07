@@ -467,14 +467,13 @@ class GestoreTurno:
     def aggiungi_carta_tavolo(self, giocatore: Giocatore, carta: Carta):
         """Aggiunge una carta giocata al tavolo"""
         self.tavolo.append((giocatore, carta))
-        
-        # Se è la prima carta, imposta il seme richiesto
+        self.tracciamento.registra_carta_giocata(carta)
+
         if len(self.tavolo) == 1:
             self.seme_richiesto = carta.seme
             self.carta_vincente_corrente = (giocatore, carta)
         else:
-            # Aggiorna la carta vincente se necessario
-            assert self.carta_vincente_corrente is not None, "Carta vincente corrente non definita!"
+            assert self.carta_vincente_corrente is not None
             if self._carta_batte(carta, self.carta_vincente_corrente[1]):
                 self.carta_vincente_corrente = (giocatore, carta)
     
@@ -705,6 +704,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
