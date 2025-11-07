@@ -5,7 +5,7 @@ Struttura modulare, orientata agli oggetti, facilmente estendibile
 
 import random
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Set, Tuple
 from enum import Enum
 
 
@@ -550,6 +550,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
