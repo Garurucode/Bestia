@@ -42,6 +42,14 @@ class Carta:
 
     def __str__(self):
         return f"{self.valore} di {self.seme}"
+        
+    def __eq__(self, other):
+        if not isinstance(other, Carta):
+            return False
+        return self.valore == other.valore and self.seme == other.seme
+
+    def __hash__(self):
+        return hash((self.valore, self.seme))
 
 
 @dataclass
@@ -550,6 +558,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
