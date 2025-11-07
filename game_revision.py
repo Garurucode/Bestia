@@ -185,7 +185,81 @@ class GestoreBussata:
                         return True
 
         return False
+        
+class TracciamentoCarte:
+    """Traccia le carte giocate e analizza quali sono ancora in gioco"""
 
+    def __init__(self, briscola: Carta):
+        self.briscola = briscola
+        self.carte_giocate: Set[Carta] = set()
+        self.carte_turno_corrente: List[Carta] = []
+
+    def registra_carta_giocata(self, carta: Carta):
+        """Registra una carta giocata"""
+        self.carte_giocate.add(carta)
+        self.carte_turno_corrente.append(carta)
+
+    def reset_turno(self):
+        """Reset per nuovo turno"""
+        self.carte_turno_corrente = []
+
+    def carte_conosciute(self, giocatore: Giocatore) -> Set[Carta]:
+        """Restituisce tutte le carte conosciute dal giocatore"""
+        conosciute = set()
+        conosciute.update(giocatore.mano)
+        conosciute.update(giocatore.carte_scartate)
+        conosciute.update(self.carte_giocate)
+        return conosciute
+
+    def briscole_piu_forti_non_uscite(self, carta: Carta, giocatore: Giocatore) -> List[Carta]:
+        """
+        Trova tutte le briscole più forti di 'carta' che non sono ancora uscite
+        """
+        if carta.seme != self.briscola.seme:
+            return []
+
+        conosciute = self.carte_conosciute(giocatore)
+        briscole_piu_forti = []
+
+        for valore in ConfigurazioneGioco.VALORI:
+            carta_test = Carta(
+                valore=valore,
+                seme=self.briscola.seme,
+                forza_presa=ConfigurazioneGioco.FORZA_BRISCOLA[valore]
+            )
+
+            # Se è più forte e non è conosciuta, potrebbe essere in giro
+            if carta_test.forza_presa > carta.forza_presa and carta_test not in conosciute:
+                briscole_piu_forti.append(carta_test)
+
+        return briscole_piu_forti
+
+    def carte_piu_forti_non_uscite(self, carta: Carta, giocatore: Giocatore) -> List[Carta]:
+        """
+        Trova tutte le carte dello stesso seme più forti che non sono ancora uscite
+        """
+        conosciute = self.carte_conosciute(giocatore)
+        carte_piu_forti = []
+
+        # Determina se la carta è briscola o no
+        is_briscola = carta.seme == self.briscola.seme
+        forza_dict = ConfigurazioneGioco.FORZA_BRISCOLA if is_briscola else ConfigurazioneGioco.FORZA_NON_BRISCOLA
+
+        for valore in ConfigurazioneGioco.VALORI:
+            carta_test = Carta(
+                valore=valore,
+                seme=carta.seme,
+                forza_presa=forza_dict[valore]
+            )
+
+            if carta_test.forza_presa > carta.forza_presa and carta_test not in conosciute:
+                carte_piu_forti.append(carta_test)
+
+        return carte_piu_forti
+
+    def esiste_briscola_piu_forte_non_uscita(self, carta: Carta, giocatore: Giocatore) -> bool:
+        """Verifica se esiste almeno una briscola più forte non ancora uscita"""
+        return len(self.briscole_piu_forti_non_uscite(carta, giocatore)) > 0
 
 class GestoreTurno:
     """Gestisce la logica dei turni di gioco secondo le regole ufficiali della Bestia"""
@@ -560,6 +634,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
