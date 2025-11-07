@@ -368,38 +368,82 @@ class GestoreTurno:
         # Gioca la carta più bassa
         return self._gioca_carta_piu_bassa(giocatore)
        
-    def _scegli_carta_migliore(self, giocatore: Giocatore, 
-                               carte_valide: List[tuple[int, Carta]]) -> Carta:
+    def _scegli_carta_migliore(self, giocatore: Giocatore,
+                               carte_valide: List[Tuple[int, Carta]],
+                               ultimo_a_giocare: bool) -> Carta:
         """
-        Sceglie la carta migliore tra quelle valide:
-        - Se può vincere: gioca la carta più bassa che vince
-        - Se non può vincere: gioca la carta più bassa in assoluto
+        Strategia intelligente:
+        - Se ultimo: cerca di vincere con la carta più bassa possibile
+        - Se NON ultimo e può vincere: valuta se giocare la vincente o conservarla
+        - Se NON ultimo e sono briscole: gioca la più piccola per non sprecarle
+        - Se NON ultimo e sono non-briscole: gioca la più grande
         """
         
         if not self.carta_vincente_corrente:
-            # È il primo a giocare, gioca carta più alta
+            # Primo a giocare (non dovrebbe succedere in _scegli_carta_migliore)
             carte_valide.sort(key=lambda x: x[1].forza_presa, reverse=True)
             indice, _ = carte_valide[0]
             return giocatore.gioca_carta(indice)
-        
+
         _, carta_da_battere = self.carta_vincente_corrente
-        
+
         # Trova carte che possono vincere
         carte_vincenti = [
-            (i, c) for i, c in carte_valide 
+            (i, c) for i, c in carte_valide
             if self._carta_batte(c, carta_da_battere)
         ]
         
-        if carte_vincenti:
-            # Può vincere: gioca la carta vincente più bassa
-            carte_vincenti.sort(key=lambda x: x[1].forza_presa)
-            indice, _ = carte_vincenti[0]
-            return giocatore.gioca_carta(indice)
-        
-        # Non può vincere: gioca la carta più bassa
-        carte_valide.sort(key=lambda x: x[1].forza_presa)
-        indice, _ = carte_valide[0]
-        return giocatore.gioca_carta(indice)
+        # Se è l'ultimo a giocare
+        if ultimo_a_giocare:
+            if carte_vincenti:
+                # Vinci con la carta più bassa possibile
+                carte_vincenti.sort(key=lambda x: x[1].forza_presa)
+                indice, _ = carte_vincenti[0]
+                return giocatore.gioca_carta(indice)
+            else:
+                # Non può vincere, gioca la più bassa
+                carte_valide.sort(key=lambda x: x[1].forza_presa)
+                indice, _ = carte_valide[0]
+                return giocatore.gioca_carta(indice)
+
+        # NON è l'ultimo a giocare - strategia conservativa
+        sono_briscole = carte_valide[0][1].seme == self.briscola.seme
+                                   
+        if sono_briscole:
+            # Risponde con briscole
+            if carte_vincenti:
+                # Può vincere, ma valuta se conviene
+                # Se c'è una briscola più forte in giro, gioca la più piccola
+                carta_vincente_piu_bassa = min(
+                    carte_vincenti, key=lambda x: x[1].forza_presa)[1]
+
+                if self.tracciamento.esiste_briscola_piu_forte_non_uscita(carta_vincente_piu_bassa, giocatore):
+                    # C'è rischio, gioca la briscola più piccola disponibile
+                    carte_valide.sort(key=lambda x: x[1].forza_presa)
+                    indice, _ = carte_valide[0]
+                    return giocatore.gioca_carta(indice)
+                else:
+                    # Nessuna briscola più forte in giro, vinci!
+                    indice, _ = carte_vincenti[0]
+                    return giocatore.gioca_carta(indice)
+            else:
+                # Non può vincere con briscola, gioca la più piccola
+                carte_valide.sort(key=lambda x: x[1].forza_presa)
+                indice, _ = carte_valide[0]
+                return giocatore.gioca_carta(indice)
+        else:
+            # Risponde con non-briscole
+            if carte_vincenti:
+                # Può vincere: gioca la vincente più bassa
+                carte_vincenti.sort(key=lambda x: x[1].forza_presa)
+                indice, _ = carte_vincenti[0]
+                return giocatore.gioca_carta(indice)
+            else:
+                # Non può vincere: gioca la più GRANDE per liberarsi
+                carte_valide.sort(key=lambda x: x[1].forza_presa, reverse=True)
+                indice, _ = carte_valide[0]
+                return giocatore.gioca_carta(indice)
+     
     
     def _gioca_carta_piu_bassa(self, giocatore: Giocatore) -> Carta:
         """Gioca la carta più bassa, preferendo non briscole"""
@@ -661,6 +705,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
