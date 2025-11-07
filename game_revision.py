@@ -60,6 +60,7 @@ class Giocatore:
     ha_bussato: bool = False
     punti_totali: int = 0
     carte_vinte: List[Carta] = field(default_factory=list)
+    carte_scartate: List[Carta] = field(default_factory=list)
 
     def aggiungi_carte(self, carte: List[Carta]):
         """Aggiunge carte alla mano del giocatore"""
@@ -77,6 +78,7 @@ class Giocatore:
 
     def scarta_mano(self) -> None:
         """Scarta tutte le carte dalla mano"""
+        self.carte_scartate.extend(self.mano)
         self.mano.clear()
 
     def __str__(self):
@@ -558,6 +560,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
