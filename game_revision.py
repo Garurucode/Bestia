@@ -264,16 +264,18 @@ class TracciamentoCarte:
 class GestoreTurno:
     """Gestisce la logica dei turni di gioco secondo le regole ufficiali della Bestia"""
     
-    def __init__(self, briscola: Carta):
+    def __init__(self, briscola: Carta, tracciamento: TracciamentoCarte):
         self.briscola = briscola
-        self.tavolo: List[tuple[Giocatore, Carta]] = []
+        self.tracciamento = tracciamento
+        self.tavolo: List[Tuple[Giocatore, Carta]] = []
         self.seme_richiesto: Optional[str] = None
-        self.carta_vincente_corrente: Optional[tuple[Giocatore, Carta]] = None
+        self.carta_vincente_corrente: Optional[Tuple[Giocatore, Carta]] = None
     
     def gioca_carta_strategica(self, giocatore: Giocatore, primo_turno: bool, 
-                               giocatore_di_mano: bool) -> Carta:
+                               giocatore_di_mano: bool, ultimo_a_giocare: bool) -> Carta:
         """
         Sceglie intelligentemente quale carta giocare secondo le regole della Bestia
+        con strategia avanzata basata sulle carte uscite
         
         Regole:
         1. Giocatore di mano al primo turno con Asso di briscola: DEVE giocarlo
@@ -300,7 +302,44 @@ class GestoreTurno:
             return self._gioca_carta_non_di_mano(giocatore)
         
         # Giocatore di mano (non primo turno) o primo turno senza Asso di briscola
-        return self._gioca_carta_di_mano(giocatore)
+        return self._gioca_carta_di_mano_intelligente(giocatore)
+
+    def _gioca_carta_di_mano_intelligente(self, giocatore: Giocatore) -> Carta:
+        """
+        Strategia per giocatore di mano:
+        - Evita di aprire con briscola se può essere battuta
+        - Preferisce aprire con la non-briscola più forte
+        """
+        briscole = [(i, c) for i, c in enumerate(
+            giocatore.mano) if c.seme == self.briscola.seme]
+        non_briscole = [(i, c) for i, c in enumerate(
+            giocatore.mano) if c.seme != self.briscola.seme]
+
+        # Se ha solo briscole, gioca la più forte
+        if not non_briscole:
+            briscole.sort(key=lambda x: x[1].forza_presa, reverse=True)
+            indice, _ = briscole[0]
+            return giocatore.gioca_carta(indice)
+
+        # Strategia: preferisci non-briscola più forte
+        non_briscole.sort(key=lambda x: x[1].forza_presa, reverse=True)
+
+        # Prendi la non-briscola più forte
+        indice_migliore, carta_migliore = non_briscole[0]
+
+        # Se ha briscole molto forti e sicure, considera di giocarle
+        if briscole:
+            briscole.sort(key=lambda x: x[1].forza_presa, reverse=True)
+            indice_bris, carta_bris = briscole[0]
+
+            # Se la briscola più forte è Asso o 3 e non ci sono briscole più forti in giro
+            if carta_bris.valore in ["Asso", "3"]:
+                if not self.tracciamento.esiste_briscola_piu_forte_non_uscita(carta_bris, giocatore):
+                    # Briscola sicura! Giocala
+                    return giocatore.gioca_carta(indice_bris)
+
+        # Altrimenti gioca la non-briscola più forte
+        return giocatore.gioca_carta(indice_migliore)
     
     def _gioca_carta_non_di_mano(self, giocatore: Giocatore) -> Carta:
         """Logica per giocatore non di mano (deve rispondere a seme)"""
@@ -634,6 +673,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
