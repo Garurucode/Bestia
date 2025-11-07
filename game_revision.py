@@ -477,18 +477,20 @@ class GestoreTurno:
             if self._carta_batte(carta, self.carta_vincente_corrente[1]):
                 self.carta_vincente_corrente = (giocatore, carta)
     
-    def determina_vincitore(self) -> tuple[Giocatore, List[Carta]]:
+    def determina_vincitore(self) -> Tuple[Giocatore, List[Carta]]:
         """Determina il vincitore del turno e restituisce le carte vinte"""
         if not self.tavolo:
             raise ValueError("Nessuna carta sul tavolo!")
-        assert self.carta_vincente_corrente is not None, "Carta vincente corrente non definita!"
+        assert self.carta_vincente_corrente is not None
+
         vincitore = self.carta_vincente_corrente[0]
         carte_vinte = [carta for _, carta in self.tavolo]
-        
+
         # Reset per il prossimo turno
         self.tavolo = []
         self.seme_richiesto = None
         self.carta_vincente_corrente = None
+        self.tracciamento.reset_turno()
         
         return vincitore, carte_vinte
     
@@ -704,6 +706,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
