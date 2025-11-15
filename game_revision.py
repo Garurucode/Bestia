@@ -592,7 +592,7 @@ class GestoreTurno:
 # ==================== GIOCO PRINCIPALE ====================
 
 class BriscolaGame:
-    """Classe principale che gestisce il gioco della Briscola"""
+    """Classe principale che gestisce il gioco della Bestia con sistema di scommesse"""
 
     def __init__(self, num_giocatori: int = 5):
         self.num_giocatori = num_giocatori
@@ -603,6 +603,8 @@ class BriscolaGame:
         self.gestore_turno: Optional[GestoreTurno] = None
         self.tracciamento: Optional[TracciamentoCarte] = None
         self.indice_giocatore_di_mano: int = 0
+        self.indice_mazziere: int = -1  # Ultimo giocatore
+        self.piatto: int = 0
 
     def _verifica_inizializzazione(self):
         """Verifica che il gioco sia stato inizializzato"""
@@ -654,10 +656,17 @@ class BriscolaGame:
             if GestoreBussata.verifica_bussata(giocatore, self.briscola):
                 print(
                     f"  ✅ {giocatore} ha BUSSATO! (Punti: {giocatore.calcola_punti_mano()})")
+                if GestoreBussata.ha_mano_sicura(giocatore, self.briscola):
+                    print(f"     🛡️  Mano SICURA!")
                 giocatore.ha_bussato = True
                 bussatori.append(giocatore)
             else:
-                print(f"  ❌ {giocatore} ha AFFONDATO!")
+                motivo = ""
+                if giocatore.calcola_punti_mano() < ConfigurazioneGioco.SOGLIA_PUNTI_BUSSATA:
+                    motivo = f" (punti insufficienti: {giocatore.calcola_punti_mano()} ≤ {ConfigurazioneGioco.SOGLIA_PUNTI_BUSSATA})"
+                elif giocatore.fiches < self.piatto:
+                    motivo = f" (fiches insufficienti: {giocatore.fiches} < {self.piatto})"
+                print(f"  ❌ {giocatore} ha AFFONDATO!{motivo}")
                 giocatore.scarta_mano()
                 affondatori.append(giocatore)
 
@@ -782,6 +791,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
