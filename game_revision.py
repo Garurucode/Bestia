@@ -682,19 +682,26 @@ class BriscolaGame:
 
         for giocatore in affondatori:
             if len(bussatori) <= 3 and self.mazzo.carte_rimanenti() >= ConfigurazioneGioco.CARTE_PER_MANO:
-                carte_pescate = self.mazzo.pesca_carte(
-                    ConfigurazioneGioco.CARTE_PER_MANO)
-                giocatore.aggiungi_carte(carte_pescate)
-                giocatore.ha_bussato = True
-                bussatori.append(giocatore)
-                print(f"\n{giocatore} pesca {len(carte_pescate)} carte:")
-                self._mostra_mano(giocatore)
+               # Valuta se pescare in base alle fiches
+                if GestoreBussata.verifica_pesca_carte(giocatore, self.briscola, self.piatto):
+                    carte_pescate = self.mazzo.pesca_carte(
+                        ConfigurazioneGioco.CARTE_PER_MANO)
+                    giocatore.aggiungi_carte(carte_pescate)
+                    giocatore.ha_bussato = True
+                    bussatori.append(giocatore)
+                    print(f"\n{giocatore} pesca {len(carte_pescate)} carte:")
+                    self._mostra_mano(giocatore)
+                else:
+                    print(
+                        f"\n{giocatore} NON pesca carte (fiches insufficienti: {giocatore.fiches} < {self.piatto})")
             else:
                 print(
                     f"\n{giocatore} non può pescare carte (limite raggiunto o mazzo vuoto)")
 
         self.giocatori_attivi = bussatori
         print(f"\n📋 Giocatori attivi: {len(self.giocatori_attivi)}")
+        print(f"💰 Piatto in palio: {self.piatto} fiches")
+        print(f"   Premio per turno vinto: {self.piatto // 3} fiches")
 
         return True
 
@@ -791,6 +798,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
