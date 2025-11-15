@@ -638,6 +638,15 @@ class BriscolaGame:
             giocatore.aggiungi_carte(carte)
             self.giocatori.append(giocatore)
 
+        # Il mazziere è l'ultimo giocatore
+        self.indice_mazziere = self.num_giocatori - 1
+
+    def fase_puntata_mazziere(self):
+        """Il mazziere mette la puntata iniziale nel piatto"""
+        mazziere = self.giocatori[self.indice_mazziere]
+        puntata = mazziere.paga(ConfigurazioneGioco.PUNTATA_MAZZIERE)
+        self.piatto = puntata
+
     def fase_bussate(self):
         """Gestisce la fase delle bussate"""
         print("=" * 60)
@@ -798,6 +807,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
