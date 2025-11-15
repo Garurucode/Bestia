@@ -123,6 +123,7 @@ class ConfigurazioneGioco:
     VALORI = ["Asso", "2", "3", "4", "5", "6", "7", "Fante", "Cavallo", "Re"]
     CARTE_PER_MANO = 3
     SOGLIA_PUNTI_BUSSATA = 150
+    PUNTATA_MAZZIERE = 3  # Fiches che il mazziere mette nel piatto
 
 
 # ==================== LOGICA GIOCO ====================
@@ -176,30 +177,82 @@ class Mazzo:
 
 
 class GestoreBussata:
-    """Gestisce la logica delle bussate"""
+    """Gestisce la logica delle bussate con valutazione del rischio"""
 
     @staticmethod
-    def verifica_bussata(giocatore: Giocatore, briscola: Carta) -> bool:
-        """Verifica se un giocatore può/deve bussare"""
-        punti_mano = giocatore.calcola_punti_mano()
-
-        # Bussata automatica se supera la soglia punti
-        if punti_mano > ConfigurazioneGioco.SOGLIA_PUNTI_BUSSATA:
+    def ha_mano_sicura(giocatore: Giocatore, briscola: Carta) -> bool:
+        """
+        Verifica se il giocatore ha una mano SICURA per vincere:
+        - Asso di briscola (sempre vincente)
+        - 3 e Re di briscola (combinazione vincente se briscola non è Asso)
+        - 3 di briscola (se briscola è Asso, 3 è la seconda carta più forte)
+        """
+        ha_asso_briscola = any(
+            c.valore == "Asso" and c.seme == briscola.seme 
+            for c in giocatore.mano
+        )
+        
+        if ha_asso_briscola:
             return True
-
-        # Verifica se ha Asso di briscola
-        for carta in giocatore.mano:
-            if carta.valore == "Asso" and carta.seme == briscola.seme:
+        
+        # Controlla 3 + Re di briscola
+        if briscola.valore != "Asso":
+            ha_tre_briscola = any(
+                c.valore == "3" and c.seme == briscola.seme 
+                for c in giocatore.mano
+            )
+            ha_re_briscola = any(
+                c.valore == "Re" and c.seme == briscola.seme 
+                for c in giocatore.mano
+            )
+            
+            if ha_tre_briscola and ha_re_briscola:
                 return True
+        else:
+            # Briscola è Asso, controlla solo 3 di briscola
+            ha_tre_briscola = any(
+                c.valore == "3" and c.seme == briscola.seme 
+                for c in giocatore.mano
+            )
+            if ha_tre_briscola:
+                return True
+        
+        return False
 
-            # Verifica 3 di briscola con condizioni
-            if carta.valore == "3" and carta.seme == briscola.seme:
-                if briscola.valore == "Asso":
-                    return True
-                # Verifica se ha anche Re di briscola
-                for carta2 in giocatore.mano:
-                    if carta2.valore == "Re" and carta2.seme == briscola.seme:
-                        return True
+    @staticmethod
+    def verifica_bussata(giocatore: Giocatore, briscola: Carta, piatto: int) -> bool:
+        """
+        Verifica se un giocatore può/deve bussare considerando il rischio
+        
+        Logica:
+        - Mano sicura (Asso, 3 di mano o 3+Re briscola): bussa sempre
+        - Punti > soglia: bussa solo se ha abbastanza fiches
+        - Altrimenti: non bussa
+        """
+        punti_mano = giocatore.calcola_punti_mano()
+        mano_sicura = GestoreBussata.ha_mano_sicura(giocatore, briscola)
+        
+        # Mano sicura: bussa sempre (rischio minimo)
+        if mano_sicura:
+            return True
+        
+        # Bussata per punti alti: solo se ha abbastanza fiches per coprire il rischio
+        if punti_mano > ConfigurazioneGioco.SOGLIA_PUNTI_BUSSATA:
+            if giocatore.fiches >= piatto:
+                return True
+            else:
+                return False  # Non bussa se non può permettersi di perdere
+        
+        return False
+
+    @staticmethod
+    def verifica_pesca_carte(giocatore: Giocatore, briscola: Carta, piatto: int) -> bool:
+        """
+        Verifica se un giocatore affondato dovrebbe pescare carte
+        
+        Logica: pesca solo se ha abbastanza fiches per coprire il rischio
+        """
+        return giocatore.fiches >= piatto
 
         return False
         
@@ -729,6 +782,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
