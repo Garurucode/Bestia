@@ -787,17 +787,25 @@ class BriscolaGame:
         print("📊 RISULTATI FINALI")
         print("=" * 60 + "\n")
 
-        # Ordina giocatori per punti
+        # Ordina giocatori per prese
         classifica = sorted(
             self.giocatori_attivi,
-            key=lambda g: g.punti_totali,
+            key=lambda g: g.turni_vinti,
             reverse=True
         )
 
         for i, giocatore in enumerate(classifica, 1):
             emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
-            print(f"{emoji} {i}° - {giocatore}: {giocatore.punti_totali} punti "
-                  f"({len(giocatore.carte_vinte)} carte vinte)")
+            print(f"{emoji} {i}° - {giocatore}: {giocatore.turni_vinti} prese")
+            
+        print("\n" + "─" * 60)
+        print("💰 STATO FICHES")
+        print("─" * 60 + "\n")
+
+        for giocatore in self.giocatori:
+            delta = giocatore.fiches - 100  # Differenza dall'inizio
+            simbolo = "+" if delta > 0 else ""
+            print(f"{giocatore}: {giocatore.fiches} fiches ({simbolo}{delta})")
 
         print("\n" + "=" * 60)
 
@@ -826,6 +834,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
