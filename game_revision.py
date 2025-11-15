@@ -757,10 +757,29 @@ class BriscolaGame:
             vincitore.carte_vinte.extend(carte_vinte)
             punti_turno = sum(c.forza_presa for c in carte_vinte)
             vincitore.punti_totali += punti_turno
+            vincitore.turni_vinti += 1
+            # Vince 1/3 del piatto
+            vincitore.ricevi(premio_per_turno)
 
             print(f"\n  🏆 {vincitore} vince il turno! (+{punti_turno} punti)")
             # Aggiorna giocatore di mano per il prossimo turno
             self.indice_giocatore_di_mano = self.giocatori_attivi.index(vincitore)
+         # Penalità per chi non ha vinto nessun turno
+        print("\n" + "=" * 60)
+        print("💸 FASE PENALITÀ")
+        print("=" * 60)
+
+        for giocatore in self.giocatori_attivi:
+            if giocatore.turni_vinti == 0:
+                penalita = giocatore.paga(self.piatto)
+                print(f"\n❌ {giocatore} non ha vinto nessun turno!")
+                print(
+                    f"   Paga penalità: {penalita} fiches (richiesto: {self.piatto})")
+                if penalita < self.piatto:
+                    print(
+                        f"   ⚠️  Non aveva abbastanza fiches! (rimanenti: {giocatore.fiches})")
+
+       
 
     def mostra_risultati(self):
         """Mostra i risultati finali"""
@@ -807,6 +826,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
