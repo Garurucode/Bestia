@@ -56,9 +56,11 @@ class Carta:
 class Giocatore:
     """Rappresenta un giocatore"""
     id: int
+    fiches: int = 100  # Fiches iniziali
     mano: List[Carta] = field(default_factory=list)
     ha_bussato: bool = False
     punti_totali: int = 0
+    turni_vinti: int = 0
     carte_vinte: List[Carta] = field(default_factory=list)
     carte_scartate: List[Carta] = field(default_factory=list)
 
@@ -80,6 +82,21 @@ class Giocatore:
         """Scarta tutte le carte dalla mano"""
         self.carte_scartate.extend(self.mano)
         self.mano.clear()
+
+    def paga(self, importo: int) -> int:
+        """Paga un importo e ritorna quanto effettivamente pagato"""
+        if self.fiches >= importo:
+            self.fiches -= importo
+            return importo
+        else:
+            # Paga tutto quello che ha
+            pagato = self.fiches
+            self.fiches = 0
+            return pagato
+    
+    def ricevi(self, importo: int):
+        """Riceve un importo in fiches"""
+        self.fiches += importo
 
     def __str__(self):
         return f"Giocatore {self.id + 1}"
@@ -712,6 +729,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
