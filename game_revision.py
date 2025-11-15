@@ -725,6 +725,7 @@ class BriscolaGame:
 
         self.gestore_turno = GestoreTurno(self.briscola)
         self.indice_giocatore_di_mano = 0  # Il primo giocatore è di mano
+        premio_per_turno = self.piatto // 3
 
         # Gioca 3 turni (tutte le carte)
         for turno in range(ConfigurazioneGioco.CARTE_PER_MANO):
@@ -761,7 +762,8 @@ class BriscolaGame:
             # Vince 1/3 del piatto
             vincitore.ricevi(premio_per_turno)
 
-            print(f"\n  🏆 {vincitore} vince il turno! (+{punti_turno} punti)")
+            print(
+                f"\n  🏆 {vincitore} vince il turno! (+{punti_turno} punti, +{premio_per_turno} fiches)")
             # Aggiorna giocatore di mano per il prossimo turno
             self.indice_giocatore_di_mano = self.giocatori_attivi.index(vincitore)
          # Penalità per chi non ha vinto nessun turno
@@ -834,6 +836,7 @@ if __name__ == "__main__":
 
     print("\n✅ Partita completata!")
     print("\n💡 Per giocare di nuovo: game = BriscolaGame(num_giocatori=5); game.avvia()")
+
 
 
 
